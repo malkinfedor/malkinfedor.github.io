@@ -1,7 +1,7 @@
 ---
 layout: post
-category: Ops
-tags: [linux lvm hdd]
+tags: linux lvm hdd
+description: В этом посте будет описана процедура увеличения размера файловой системы с использование LVM.
 title: Расширение файловой системы с использованием механизмов LVM.
 ---
 
