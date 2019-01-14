@@ -1,7 +1,7 @@
 ---
 layout: post
 category: Ops
-tags: [linux, lvm, hdd]
+tags: [linux lvm hdd]
 title: Расширение файловой системы с использованием механизмов LVM.
 ---
 
