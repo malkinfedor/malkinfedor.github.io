@@ -5,7 +5,7 @@ tags: linux lvm hdd
 ---
 
 
-({{ site.baseurl }}/image/Configure-lvm-linux.png)
+![LVM In Linux](/images/Configure-lvm-linux.png)
 
 В этом посте будет описана процедура увеличения размера файловой системы с использование LVM.
 
