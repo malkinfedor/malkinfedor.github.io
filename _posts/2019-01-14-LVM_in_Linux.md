@@ -9,7 +9,7 @@ tags: linux lvm hdd
 
 #### В этом посте будет описана процедура увеличения размера файловой системы с использование LVM.
 
-Сначала посмотрим исходный раздел файловой системы, который необходимо расширить. В моем случае это root (_/dev/mapper/centos_sonarqube-root   20G  3.4G   17G  17% /_)
+Сначала посмотрим исходный раздел файловой системы, который необходимо расширить. В моем случае это корневой раздел (_/dev/mapper/centos_sonarqube-root   20G  3.4G   17G  17% /_)
 ```shell
 # df -h
 Filesystem                         Size  Used Avail Use% Mounted on
@@ -23,13 +23,14 @@ tmpfs                              3.9G     0  3.9G   0% /sys/fs/cgroup
 /dev/mapper/centos_sonarqube-var   5.1G  3.7G  1.5G  72% /var
 ```
 
-1. Расширяем текущий *__Virtual HDD__* через оснастку консоли виртуализации
-2. Что бы ОС увидела добавленное место, выполняем слудующую команду:
+1. Расширяем текущий HDD через оснастку консоли виртуализации.
+
+2. Что бы ОС увидела добавленное место, выполняем следующую команду:
 ```shell 
 echo 1 > /sys/class/block/sda/device/rescan 
 ```
+
 3. Проверяем что место добавилось, для этого используем команду *__parted__*, и в появившемся приглашении вводим *__print free__.*
-В примере ниже у нас было изначально самая нижняя строка _free space_ значение 2 Gb, сейчас стало 13.4, увеличил диск на 10 Gb.
 ```shell
 # parted
 GNU Parted 3.1
@@ -56,7 +57,8 @@ Number  Start   End     Size    Type     File system  Flags
 # partprobe
 ```
 6. Проверяем, что раздел появился - fdisk -l
-[root@sonarqube ~]# fdisk -l
+```shell
+# fdisk -l
 Disk /dev/sda: 42.9 GB, 42949672960 bytes, 83886080 sectors
 Units = sectors of 1 * 512 = 512 bytes
 Sector size (logical/physical): 512 bytes / 512 bytes
@@ -67,9 +69,13 @@ Disk identifier: 0x00027b36
 /dev/sda1   *        2048     1026047      512000   83  Linux
 /dev/sda2         1026048    57794559    28384256   8e  Linux LVM
 /dev/sda3        57794560    83886079    13045760   83  Linux
+```
+
 6. Создаем Physical Volume (PV). Имя устройства, указываемое в качестве параметра, берем из вывод предыдущей команды.
+```shell 
 # pvcreate /dev/sda3
   Physical volume "/dev/sda3" successfully created.
+
 # pvdisplay
   --- Physical volume ---
   PV Name               /dev/sda2
@@ -92,7 +98,10 @@ Disk identifier: 0x00027b36
   Free PE               0
   Allocated PE          0
   PV UUID               2apyrl-QeZg-FLkU-Sjbb-02dC-yj70-jmYX3E
+```
+
 7. Отобразим имеющиеся Volume Group (VG)и расширим нужный. 
+```shell
 # vgdisplay
   --- Volume group ---
   VG Name               centos_sonarqube
@@ -114,9 +123,13 @@ Disk identifier: 0x00027b36
   Alloc PE / Size       6929 / <27.07 GiB
   Free  PE / Size       0 / 0
   VG UUID               qrvMPo-yHMc-fU5w-Y0zR-cCJA-a6s2-sQxeeQ
+
 # vgextend centos_sonarqube /dev/sda3
   Volume group "centos_sonarqube" successfully extended
+```
+
 Проверим что размер VG centos_sonarqube дейтвительно увеличился. 
+```shell
 # vgdisplay
   --- Volume group ---
   VG Name               centos_sonarqube
@@ -138,8 +151,12 @@ Disk identifier: 0x00027b36
   Alloc PE / Size       6929 / <27.07 GiB
   Free  PE / Size       3184 / <12.44 GiB
   VG UUID               qrvMPo-yHMc-fU5w-Y0zR-cCJA-a6s2-sQxeeQ
+```
+
 Видно, что значение Free PE увеличилось на размер добавленного PV (~12 Gb).
+
 8. Посмотрим существующие Logical Volume (LV) и расширим требуемый.
+```shell
 # lvdisplay
 --- Logical volume ---
   LV Path                /dev/centos_sonarqube/root
@@ -157,10 +174,14 @@ Disk identifier: 0x00027b36
   Read ahead sectors     auto
   - currently set to     8192
   Block device           253:0
+
 # lvextend -l+100%FREE /dev/centos_sonarqube/root
   Size of logical volume centos_sonarqube/root changed from 19.76 GiB (5059 extents) to <32.20 GiB (8243 extents).
   Logical volume centos_sonarqube/root successfully resized.
+```
+
 Убедимся, что размер LV centos_sonarqube/root действительно  увеличился
+```shell
 # lvdisplay
   --- Logical volume ---
   LV Path                /dev/centos_sonarqube/root
@@ -178,13 +199,16 @@ Disk identifier: 0x00027b36
   Read ahead sectors     auto
   - currently set to     8192
   Block device           253:0
+```
 
 9. И наконец, расширим файловую систему. В случае с CentOS команда resize2fs была заменена на xfs_growfs.
+```shell
 # resize2fs /dev/mapper/centos_sonarqube-root
 resize2fs 1.42.9 (28-Dec-2013)
 resize2fs: Bad magic number in super-block while trying to open /dev/mapper/centos_sonarqube-root
 Couldn't find valid filesystem superblock.
-
+```
+```shell
 # xfs_growfs /dev/mapper/centos_sonarqube-root
 meta-data=/dev/mapper/centos_sonarqube-root isize=512    agcount=4, agsize=1295104 blks
          =                       sectsz=512   attr=2, projid32bit=1
@@ -196,7 +220,10 @@ log      =internal               bsize=4096   blocks=2560, version=2
          =                       sectsz=512   sunit=0 blks, lazy-count=1
 realtime =none                   extsz=4096   blocks=0, rtextents=0
 data blocks changed from 5180416 to 8440832
+```
+
 Проверяем что размер файловой системы действительно увеличился
+```shell
 # df -h
 Filesystem                         Size  Used Avail Use% Mounted on
 /dev/mapper/centos_sonarqube-root   33G  3.4G   29G  11% /
@@ -207,8 +234,6 @@ tmpfs                              3.9G     0  3.9G   0% /sys/fs/cgroup
 /dev/sda1                          497M  217M  280M  44% /boot
 /dev/mapper/centos_sonarqube-tmp   2.0G  202M  1.8G  10% /tmp
 /dev/mapper/centos_sonarqube-var   5.1G  3.7G  1.5G  72% /var
-
-Related links:
-https://www.geoffstratton.com/expand-hard-disk-ubuntu-lvm
-
+```
+На этой увеличение раздела файловой системы можно считать завершенным.
 
