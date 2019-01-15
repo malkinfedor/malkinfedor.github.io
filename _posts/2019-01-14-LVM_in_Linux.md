@@ -56,7 +56,7 @@ Number  Start   End     Size    Type     File system  Flags
 ```shell
 # partprobe
 ```
-6. Проверяем, что раздел появился - fdisk -l
+6. Проверяем, что раздел появился.
 ```shell
 # fdisk -l
 Disk /dev/sda: 42.9 GB, 42949672960 bytes, 83886080 sectors
@@ -71,7 +71,7 @@ Disk identifier: 0x00027b36
 /dev/sda3        57794560    83886079    13045760   83  Linux
 ```
 
-6. Создаем Physical Volume (PV). Имя устройства, указываемое в качестве параметра, берем из вывод предыдущей команды.
+7. Создаем Physical Volume (PV). Имя устройства, указываемое в качестве параметра, берем из вывод предыдущей команды.
 ```shell 
 # pvcreate /dev/sda3
   Physical volume "/dev/sda3" successfully created.
@@ -100,7 +100,7 @@ Disk identifier: 0x00027b36
   PV UUID               2apyrl-QeZg-FLkU-Sjbb-02dC-yj70-jmYX3E
 ```
 
-7. Отобразим имеющиеся Volume Group (VG)и расширим нужный. 
+8. Отобразим имеющиеся Volume Group (VG)и расширим нужный. 
 ```shell
 # vgdisplay
   --- Volume group ---
@@ -154,8 +154,7 @@ Disk identifier: 0x00027b36
 ```
 
 Видно, что значение Free PE увеличилось на размер добавленного PV (~12 Gb).
-
-8. Посмотрим существующие Logical Volume (LV) и расширим требуемый.
+9. Посмотрим существующие Logical Volume (LV) и расширим требуемый.
 ```shell
 # lvdisplay
 --- Logical volume ---
@@ -201,7 +200,7 @@ Disk identifier: 0x00027b36
   Block device           253:0
 ```
 
-9. И наконец, расширим файловую систему. В случае с CentOS команда resize2fs была заменена на xfs_growfs.
+10. И наконец, расширим файловую систему. В случае с CentOS команда resize2fs была заменена на xfs_growfs.
 ```shell
 # resize2fs /dev/mapper/centos_sonarqube-root
 resize2fs 1.42.9 (28-Dec-2013)
