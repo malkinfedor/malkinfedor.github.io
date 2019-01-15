@@ -10,6 +10,7 @@ tags: linux lvm hdd
 В этом посте будет описана процедура увеличения размера файловой системы с использование LVM.
 
 Сначала посмотрим исходный раздел файловой системы, который необходимо расширить. В моем случае это root (/dev/mapper/centos_sonarqube-root   20G  3.4G   17G  17% /)
+```shell
 # df -h
 Filesystem                         Size  Used Avail Use% Mounted on
 /dev/mapper/centos_sonarqube-root   20G  3.4G   17G  17% /
@@ -20,12 +21,13 @@ tmpfs                              3.9G     0  3.9G   0% /sys/fs/cgroup
 /dev/sda1                          497M  217M  280M  44% /boot
 /dev/mapper/centos_sonarqube-tmp   2.0G  202M  1.8G  10% /tmp
 /dev/mapper/centos_sonarqube-var   5.1G  3.7G  1.5G  72% /var
+```
 
 1. Расширяем текущий Virtual HDD через оснастку консоли виртуализации
 2. Данная команда позволяет обнаружить добавленное место без перезагрузки - echo 1 > /sys/class/block/sda/device/rescan
 3. Смотрим что место добавилось, для этого используем команду parted, и в появившемся приглашении вводим print free.
 В примере ниже у нас было изначально самая нижняя строка free space значение 2 Gb, сейчас стало 13.4, увеличил диск на 10 Gb.
-
+```shell
 # parted
 GNU Parted 3.1
 Using /dev/sda
@@ -41,6 +43,8 @@ Number  Start   End     Size    Type     File system  Flags
  1      1049kB  525MB   524MB   primary  xfs          boot
  2      525MB   29.6GB  29.1GB  primary               lvm
         29.6GB  42.9GB  13.4GB           Free Space
+```
+
 
 4. Теперь необходимо разметить свободное место, для этого используем команду cfdisk.
 В появившемся меню выбираем свободное пункт с пометкой Free space -> New -> Primary -> Вводим размер создаваемого раздела -> Write -> вводим  'yes' для подтверждения 5
