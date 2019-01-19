@@ -26,11 +26,13 @@ tmpfs                              3.9G     0  3.9G   0% /sys/fs/cgroup
 1. Расширяем текущий HDD через оснастку консоли виртуализации.
 
 2. Что бы ОС увидела добавленное место, выполняем следующую команду:
+
 ```shell 
 echo 1 > /sys/class/block/sda/device/rescan 
 ```
 
 3. Проверяем что место добавилось, для этого используем команду *__parted__*, и в появившемся приглашении вводим *__print free__.*
+
 ```shell
 # parted
 GNU Parted 3.1
@@ -53,10 +55,13 @@ Number  Start   End     Size    Type     File system  Flags
 В появившемся меню выбираем _пункт с пометкой Free space -> New -> Primary -> Вводим размер создаваемого раздела -> Write -> вводим  'yes' для подтверждения_.
 
 5. Перечитаем таблицу разделов с помощью команды *__partprobe__* 
+
 ```shell
 # partprobe
 ```
+
 6. Проверяем, что раздел появился.
+
 ```shell
 # fdisk -l
 Disk /dev/sda: 42.9 GB, 42949672960 bytes, 83886080 sectors
@@ -101,7 +106,8 @@ Disk identifier: 0x00027b36
   PV UUID               2apyrl-QeZg-FLkU-Sjbb-02dC-yj70-jmYX3E
 ```
 
-8. Отобразим имеющиеся Volume Group (VG)и расширим нужный. 
+8. Отобразим имеющиеся Volume Group (VG)и расширим нужный.
+
 ```shell
 # vgdisplay
   --- Volume group ---
@@ -128,8 +134,8 @@ Disk identifier: 0x00027b36
 # vgextend centos_sonarqube /dev/sda3
   Volume group "centos_sonarqube" successfully extended
 ```
+Проверим что размер VG centos_sonarqube дейтвительно увеличился.
 
-Проверим что размер VG centos_sonarqube дейтвительно увеличился. 
 ```shell
 # vgdisplay
   --- Volume group ---
@@ -155,7 +161,9 @@ Disk identifier: 0x00027b36
 ```
 
 Видно, что значение Free PE увеличилось на размер добавленного PV (~12 Gb).
+
 9. Посмотрим существующие Logical Volume (LV) и расширим требуемый.
+
 ```shell
 # lvdisplay
 --- Logical volume ---
@@ -179,8 +187,8 @@ Disk identifier: 0x00027b36
   Size of logical volume centos_sonarqube/root changed from 19.76 GiB (5059 extents) to <32.20 GiB (8243 extents).
   Logical volume centos_sonarqube/root successfully resized.
 ```
+Убедимся, что размер LV centos_sonarqube/root действительно  увеличился:
 
-Убедимся, что размер LV centos_sonarqube/root действительно  увеличился
 ```shell
 # lvdisplay
   --- Logical volume ---
@@ -202,6 +210,7 @@ Disk identifier: 0x00027b36
 ```
 
 10. И наконец, расширим файловую систему. В случае с CentOS команда resize2fs была заменена на xfs_growfs.
+
 ```shell
 # resize2fs /dev/mapper/centos_sonarqube-root
 resize2fs 1.42.9 (28-Dec-2013)
@@ -222,7 +231,8 @@ realtime =none                   extsz=4096   blocks=0, rtextents=0
 data blocks changed from 5180416 to 8440832
 ```
 
-Проверяем что размер файловой системы действительно увеличился
+Проверяем что размер файловой системы действительно увеличился:
+
 ```shell
 # df -h
 Filesystem                         Size  Used Avail Use% Mounted on
@@ -235,5 +245,6 @@ tmpfs                              3.9G     0  3.9G   0% /sys/fs/cgroup
 /dev/mapper/centos_sonarqube-tmp   2.0G  202M  1.8G  10% /tmp
 /dev/mapper/centos_sonarqube-var   5.1G  3.7G  1.5G  72% /var
 ```
+
 На этой увеличение раздела файловой системы можно считать завершенным.
 
