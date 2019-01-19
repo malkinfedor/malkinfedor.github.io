@@ -72,6 +72,7 @@ Disk identifier: 0x00027b36
 ```
 
 7. Создаем Physical Volume (PV). Имя устройства, указываемое в качестве параметра, берем из вывод предыдущей команды.
+
 ```shell 
 # pvcreate /dev/sda3
   Physical volume "/dev/sda3" successfully created.
