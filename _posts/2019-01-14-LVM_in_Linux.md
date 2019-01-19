@@ -1,6 +1,7 @@
 ---
 layout: post
 title: Расширение файловой системы с использованием механизмов LVM.
+description: Описание процесса расширения файловой системы.
 tags: linux lvm hdd
 ---
 
@@ -51,7 +52,7 @@ Number  Start   End     Size    Type     File system  Flags
         29.6GB  42.9GB  13.4GB           Free Space
 ```
 
-4. Далее необходимо разметить свободное место, для этого используем команду *__cfdisk__*.
+* Далее необходимо разметить свободное место, для этого используем команду *__cfdisk__*.
 В появившемся меню выбираем _пункт с пометкой Free space -> New -> Primary -> Вводим размер создаваемого раздела -> Write -> вводим  'yes' для подтверждения_.
 
 * Перечитаем таблицу разделов с помощью команды *__partprobe__* 
@@ -182,7 +183,8 @@ Disk identifier: 0x00027b36
   Read ahead sectors     auto
   - currently set to     8192
   Block device           253:0
-
+```
+```shell
 # lvextend -l+100%FREE /dev/centos_sonarqube/root
   Size of logical volume centos_sonarqube/root changed from 19.76 GiB (5059 extents) to <32.20 GiB (8243 extents).
   Logical volume centos_sonarqube/root successfully resized.
@@ -209,7 +211,7 @@ Disk identifier: 0x00027b36
   Block device           253:0
 ```
 
-* И наконец, расширим файловую систему. В случае с CentOS команда resize2fs была заменена на xfs_growfs.
+* Наконец, расширим файловую систему. В случае с CentOS команда resize2fs была заменена на xfs_growfs.
 
 ```shell
 # resize2fs /dev/mapper/centos_sonarqube-root
