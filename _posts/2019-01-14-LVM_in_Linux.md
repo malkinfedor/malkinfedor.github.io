@@ -1,15 +1,34 @@
 ---
 layout: post
-title: Расширение файловой системы с использованием механизмов LVM.
+title: Расширение файловой системы с использованием механизмов LVM и увеличением объема существующего vHDD.
+description: Описание процесса расширения файловой системы.
 tags: linux lvm hdd
 ---
 
 
 ![LVM In Linux](/images/Configure-lvm-linux.png)
 
-#### В этом посте будет описана процедура увеличения размера файловой системы с использование LVM.
+#### В этой заметке будет описана процедура увеличения размера файловой системы с использованием LVM и расширением размера существующего vHDD, а не добавлением нового.
 
-Сначала посмотрим исходный раздел файловой системы, который необходимо расширить. В моем случае это корневой раздел (_/dev/mapper/centos_sonarqube-root   20G  3.4G   17G  17% /_)
+### Когда применим описанный метод
+
+Преимущество описанного в статье метода в том, что можно расширить раздел LVM без перезагрузки сервера (если конечно система виртуализации позволяет расширить существующий vHDD "на горячую"). Но применить его получится не всегда, есть определенные ограничения, которые не позволят этого сделать. Они описаны ниже:
+
+* В системе уже есть четыре `primary partitions` и нет extended partition. Так как существует ограничение на количество primary partitions в размере 4 штук, то при попытке создания пятого, система выдаст ошибку.
+
+* В системе уже есть extended partition, но добавленное место находится за разделом, который является primary partition. Дело в том, что добавить новый logical partiton в extended partition можно только в том случае, если неразмеченное пространство находится прямо за extended partition. Но может быть ситуация, когда был создан extended partition, в нем один или несколько logical partition(s), а за ним primary partition (как на рисунке ниже). Тут видно, что неразмеченное пространство находится за разделом sda4 (который является primary)
+
+<div style="text-align:center" markdown="1">
+![GParted Example](/images/gparted_example_clear.png){:height="80%" width="80%"}
+</div>
+
+
+
+*Если есть необходимость расширить существующий раздел LVM (LV - Logical Volume) без перезагрузки, а одно из ограничений не позволяет этого сделать, можно пойти другим способом. Не увеличивать существующий vHDD а добавить новый.*
+
+### Описание процедуры расширения
+
+Сначала посмотрим исходный раздел файловой системы, который необходимо расширить. В моем случае это корневой раздел: (`/dev/mapper/centos_sonarqube-root   20G  3.4G   17G  17% /`)
 ```shell
 # df -h
 Filesystem                         Size  Used Avail Use% Mounted on
@@ -23,14 +42,19 @@ tmpfs                              3.9G     0  3.9G   0% /sys/fs/cgroup
 /dev/mapper/centos_sonarqube-var   5.1G  3.7G  1.5G  72% /var
 ```
 
-1. Расширяем текущий HDD через оснастку консоли виртуализации.
 
-2. Что бы ОС увидела добавленное место, выполняем следующую команду:
+* Расширяем текущий HDD через оснастку консоли виртуализации. Тут все зависит от системы виртуализации, не буду описывать этот шаг подробно, предполагаю что это может сделать каждый.
+
+
+* Что бы ОС увидела добавленное место, выполняем следующую команду:
+
 ```shell 
 echo 1 > /sys/class/block/sda/device/rescan 
 ```
 
-3. Проверяем что место добавилось, для этого используем команду *__parted__*, и в появившемся приглашении вводим *__print free__.*
+
+* Проверяем что место добавилось, для этого используем команду *__parted__*, и в появившемся приглашении вводим *__print free__.*
+
 ```shell
 # parted
 GNU Parted 3.1
@@ -49,14 +73,17 @@ Number  Start   End     Size    Type     File system  Flags
         29.6GB  42.9GB  13.4GB           Free Space
 ```
 
-4. Далее необходимо разметить свободное место, для этого используем команду *__cfdisk__*.
+* Далее необходимо разметить свободное место, для этого используем команду *__cfdisk__*.
 В появившемся меню выбираем _пункт с пометкой Free space -> New -> Primary -> Вводим размер создаваемого раздела -> Write -> вводим  'yes' для подтверждения_.
 
-5. Перечитаем таблицу разделов с помощью команды *__partprobe__* 
+* Перечитаем таблицу разделов с помощью команды *__partprobe__* 
+
 ```shell
 # partprobe
 ```
-6. Проверяем, что раздел появился.
+
+* Проверяем, что раздел появился.
+
 ```shell
 # fdisk -l
 Disk /dev/sda: 42.9 GB, 42949672960 bytes, 83886080 sectors
@@ -71,7 +98,8 @@ Disk identifier: 0x00027b36
 /dev/sda3        57794560    83886079    13045760   83  Linux
 ```
 
-7. Создаем Physical Volume (PV). Имя устройства, указываемое в качестве параметра, берем из вывод предыдущей команды.
+* Создаем Physical Volume (PV). Имя устройства, указываемое в качестве параметра, берем из вывод предыдущей команды.
+
 ```shell 
 # pvcreate /dev/sda3
   Physical volume "/dev/sda3" successfully created.
@@ -100,7 +128,8 @@ Disk identifier: 0x00027b36
   PV UUID               2apyrl-QeZg-FLkU-Sjbb-02dC-yj70-jmYX3E
 ```
 
-8. Отобразим имеющиеся Volume Group (VG)и расширим нужный. 
+* Отобразим имеющиеся Volume Group (VG) и расширим нужный.
+
 ```shell
 # vgdisplay
   --- Volume group ---
@@ -127,8 +156,8 @@ Disk identifier: 0x00027b36
 # vgextend centos_sonarqube /dev/sda3
   Volume group "centos_sonarqube" successfully extended
 ```
+Проверим что размер VG `centos_sonarqube` дейтвительно увеличился.
 
-Проверим что размер VG centos_sonarqube дейтвительно увеличился. 
 ```shell
 # vgdisplay
   --- Volume group ---
@@ -154,7 +183,9 @@ Disk identifier: 0x00027b36
 ```
 
 Видно, что значение Free PE увеличилось на размер добавленного PV (~12 Gb).
-9. Посмотрим существующие Logical Volume (LV) и расширим требуемый.
+
+* Посмотрим существующие Logical Volume (LV) и расширим требуемый.
+
 ```shell
 # lvdisplay
 --- Logical volume ---
@@ -173,13 +204,14 @@ Disk identifier: 0x00027b36
   Read ahead sectors     auto
   - currently set to     8192
   Block device           253:0
-
+```
+```shell
 # lvextend -l+100%FREE /dev/centos_sonarqube/root
   Size of logical volume centos_sonarqube/root changed from 19.76 GiB (5059 extents) to <32.20 GiB (8243 extents).
   Logical volume centos_sonarqube/root successfully resized.
 ```
+Убедимся, что размер LV `centos_sonarqube/root` действительно  увеличился:
 
-Убедимся, что размер LV centos_sonarqube/root действительно  увеличился
 ```shell
 # lvdisplay
   --- Logical volume ---
@@ -200,7 +232,8 @@ Disk identifier: 0x00027b36
   Block device           253:0
 ```
 
-10. И наконец, расширим файловую систему. В случае с CentOS команда resize2fs была заменена на xfs_growfs.
+* Наконец, расширим файловую систему, что бы добавленное в LV пространство было доступно операционной системе. В случае с CentOS команда *__resize2fs__* была заменена на *__xfs_growfs__*`.
+
 ```shell
 # resize2fs /dev/mapper/centos_sonarqube-root
 resize2fs 1.42.9 (28-Dec-2013)
@@ -221,7 +254,8 @@ realtime =none                   extsz=4096   blocks=0, rtextents=0
 data blocks changed from 5180416 to 8440832
 ```
 
-Проверяем что размер файловой системы действительно увеличился
+* Проверяем что размер раздела действительно увеличился:
+
 ```shell
 # df -h
 Filesystem                         Size  Used Avail Use% Mounted on
@@ -234,5 +268,5 @@ tmpfs                              3.9G     0  3.9G   0% /sys/fs/cgroup
 /dev/mapper/centos_sonarqube-tmp   2.0G  202M  1.8G  10% /tmp
 /dev/mapper/centos_sonarqube-var   5.1G  3.7G  1.5G  72% /var
 ```
-На этой увеличение раздела файловой системы можно считать завершенным.
 
+На этом увеличение раздела файловой системы можно считать завершенным.
