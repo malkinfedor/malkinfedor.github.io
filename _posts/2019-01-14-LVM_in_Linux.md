@@ -1,10 +1,6 @@
 ---
 layout: post
-<<<<<<< HEAD
 title: Расширение файловой системы с использованием механизмов LVM и увеличением объема существующего vHDD.
-=======
-title: Расширение файловой системы с использованием механизмов LVM.
->>>>>>> 4cf93ae7ad499a09f071dd15e22e1ad6d7d30db5
 description: Описание процесса расширения файловой системы.
 tags: linux lvm hdd
 ---
@@ -12,11 +8,7 @@ tags: linux lvm hdd
 
 ![LVM In Linux](/images/Configure-lvm-linux.png)
 
-<<<<<<< HEAD
 #### В этой заметке будет описана процедура увеличения размера файловой системы с использованием LVM и расширением размера существующего vHDD, а не добавлением нового.
-=======
-#### В этом посте будет описана процедура увеличения размера файловой системы с использованием LVM.
->>>>>>> 4cf93ae7ad499a09f071dd15e22e1ad6d7d30db5
 
 ### Когда применим описанный метод
 
@@ -136,11 +128,7 @@ Disk identifier: 0x00027b36
   PV UUID               2apyrl-QeZg-FLkU-Sjbb-02dC-yj70-jmYX3E
 ```
 
-<<<<<<< HEAD
 * Отобразим имеющиеся Volume Group (VG) и расширим нужный.
-=======
-* Отобразим имеющиеся Volume Group (VG)и расширим нужный.
->>>>>>> 4cf93ae7ad499a09f071dd15e22e1ad6d7d30db5
 
 ```shell
 # vgdisplay
@@ -168,11 +156,7 @@ Disk identifier: 0x00027b36
 # vgextend centos_sonarqube /dev/sda3
   Volume group "centos_sonarqube" successfully extended
 ```
-<<<<<<< HEAD
 Проверим что размер VG `centos_sonarqube` дейтвительно увеличился.
-=======
-Проверим что размер VG centos_sonarqube дейтвительно увеличился.
->>>>>>> 4cf93ae7ad499a09f071dd15e22e1ad6d7d30db5
 
 ```shell
 # vgdisplay
@@ -226,11 +210,7 @@ Disk identifier: 0x00027b36
   Size of logical volume centos_sonarqube/root changed from 19.76 GiB (5059 extents) to <32.20 GiB (8243 extents).
   Logical volume centos_sonarqube/root successfully resized.
 ```
-<<<<<<< HEAD
 Убедимся, что размер LV `centos_sonarqube/root` действительно  увеличился:
-=======
-Убедимся, что размер LV centos_sonarqube/root действительно  увеличился:
->>>>>>> 4cf93ae7ad499a09f071dd15e22e1ad6d7d30db5
 
 ```shell
 # lvdisplay
@@ -252,11 +232,7 @@ Disk identifier: 0x00027b36
   Block device           253:0
 ```
 
-<<<<<<< HEAD
 * Наконец, расширим файловую систему, что бы добавленное в LV пространство было доступно операционной системе. В случае с CentOS команда *__resize2fs__* была заменена на *__xfs_growfs__*`.
-=======
-* Наконец, расширим файловую систему. В случае с CentOS команда resize2fs была заменена на xfs_growfs.
->>>>>>> 4cf93ae7ad499a09f071dd15e22e1ad6d7d30db5
 
 ```shell
 # resize2fs /dev/mapper/centos_sonarqube-root
@@ -278,11 +254,7 @@ realtime =none                   extsz=4096   blocks=0, rtextents=0
 data blocks changed from 5180416 to 8440832
 ```
 
-<<<<<<< HEAD
 * Проверяем что размер раздела действительно увеличился:
-=======
-* Проверяем что размер файловой системы действительно увеличился:
->>>>>>> 4cf93ae7ad499a09f071dd15e22e1ad6d7d30db5
 
 ```shell
 # df -h
@@ -296,10 +268,5 @@ tmpfs                              3.9G     0  3.9G   0% /sys/fs/cgroup
 /dev/mapper/centos_sonarqube-tmp   2.0G  202M  1.8G  10% /tmp
 /dev/mapper/centos_sonarqube-var   5.1G  3.7G  1.5G  72% /var
 ```
-<<<<<<< HEAD
-=======
-
-На этой увеличение раздела файловой системы можно считать завершенным.
->>>>>>> 4cf93ae7ad499a09f071dd15e22e1ad6d7d30db5
 
 На этом увеличение раздела файловой системы можно считать завершенным.
