@@ -108,7 +108,7 @@ SELINUX=disabled
 
 * Устанавливаем docker-ce (официальная документация [тут](https://docs.docker.com/install/linux/docker-ce/centos/))
 
-Если стоит старая версия, ее нужно удалить:
+  - Если стоит старая версия, ее нужно удалить:
 ```shell
 # yum remove docker \
                   docker-client \
@@ -120,7 +120,7 @@ SELINUX=disabled
                   docker-engine
 ```
 
-Устанавливаем утилиты:
+  - Устанавливаем утилиты:
 ```shell
 # yum install -y yum-utils \
   device-mapper-persistent-data \
@@ -128,25 +128,25 @@ SELINUX=disabled
 ```
 
 
-Добавляем репозиторий:
+  - Добавляем репозиторий:
 ```shell
 # yum-config-manager \
     --add-repo \
     https://download.docker.com/linux/centos/docker-ce.repo
 ```
 
-Устанавливаем последнюю стабильную версию docker-ce:
+  - Устанавливаем последнюю стабильную версию docker-ce:
 ```shell
 # yum install docker-ce docker-ce-cli containerd.io
 ```
 
-Запускаем демон и добавляем его в автозагрузку:
+  - Запускаем демон и добавляем его в автозагрузку:
 ```shell
 # systemctl start docker
 # systemctl enable docker
 ```
 
-На этом подготоврительные процедуры заверщены. Перезагружаем все сервера для применения изменений.
+* На этом подготоврительные процедуры заверщены. Перезагружаем все сервера для применения изменений.
 ```shell
 # reboot now
 ```
