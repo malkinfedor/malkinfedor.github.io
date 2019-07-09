@@ -270,3 +270,23 @@ tmpfs                              3.9G     0  3.9G   0% /sys/fs/cgroup
 ```
 
 На этом увеличение раздела файловой системы можно считать завершенным.
+
+P.S: последовательность команд для добавления нового logical volume
+
+```shell
+
+fdisk -l
+pvdisplay
+pvcreate /dev/sdb
+vgdisplay
+vgextend /dev/sdb
+vgextend centos /dev/sdb
+lvcreate -n pgdata -l 100%FREE centos
+mkfs.xfs /dev/centos/pgdata
+fdisk -l
+blkid /dev/centos/pgdata
+vi /etc/fstab
+mkdir /var/lib/pgdata
+mount -a
+df -h
+```
